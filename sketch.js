@@ -1,3 +1,9 @@
+let playerX = 10;
+let playerY = 10;
+/* >, v, <, ^ */ 
+let playerChar = '>';
+
+
 function setup() {
     createCanvas(500, 500);
 }
@@ -15,9 +21,29 @@ function drawGrid() {
 }
 
 
+function drawPlayer() {
+    if ( keyIsDown(RIGHT_ARROW) ) {
+        playerChar = '>';
+        playerX++;
+    } else if ( keyIsDown(LEFT_ARROW) ) {
+        playerChar = '<';
+        playerX--;
+    } else if ( keyIsDown(UP_ARROW) ) {
+        playerChar = '^';
+        playerY--;
+    } else if ( keyIsDown(DOWN_ARROW) ) {
+        playerChar = 'v';
+        playerY++;
+    }
+
+    text(playerChar, playerX, playerY);
+}
+
+
 function draw() { background(255);
     /** Main Code */
     drawGrid();
+    drawPlayer();
   
     /** Debugging */
     // printMousePosition();
