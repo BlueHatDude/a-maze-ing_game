@@ -1,11 +1,56 @@
-let playerX = 10;
-let playerY = 10;
+let playerX = 20;
+let playerY = 25;
 /* >, v, <, ^ */ 
 let playerChar = '>';
+const movementSpeed = 5;
+let grid = [];
 
 
 function setup() {
     createCanvas(500, 500);
+    textSize(20);
+}
+
+
+function initializeGrid() {
+    grid = [
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    ];
+
+    const ROWS = 10;
+    const COLUMNS = 20;
+    const DIRECTIONS = ["NORTH", "NORTHEAST", "EAST", "SOUTHEAST",
+                        "SOUTH", "SOUTHWEST", "WEST", "NORTHWEST"];
+
+    /** Maze Generating Algorithm (not good) */
+    /*
+        1. Start from a random point on the left side of the maze
+        2. Generate a valid path starting from the left side of the
+            maze until the other side is reached
+    */
+
+    const startingPoint = random(10);
+    
+
+}
+
+
+function drawMazePath() {
+
+}
+
+
+function checkMazeCollision() {
+
 }
 
 
@@ -24,26 +69,46 @@ function drawGrid() {
 function drawPlayer() {
     if ( keyIsDown(RIGHT_ARROW) ) {
         playerChar = '>';
-        playerX++;
+        playerX += movementSpeed;
     } else if ( keyIsDown(LEFT_ARROW) ) {
         playerChar = '<';
-        playerX--;
+        playerX -= movementSpeed;
     } else if ( keyIsDown(UP_ARROW) ) {
         playerChar = '^';
-        playerY--;
+        playerY -= movementSpeed;
     } else if ( keyIsDown(DOWN_ARROW) ) {
         playerChar = 'v';
-        playerY++;
+        playerY += movementSpeed;
     }
 
     text(playerChar, playerX, playerY);
 }
 
 
-function draw() { background(255);
+function checkBorderCollision() {
+    
+    if (playerX <= 0) {
+        playerX = 5;
+    } else if (playerX >= width) {
+        playerX = width - 20;
+    }
+
+    if (playerY <= 0) {
+        playerY = 20;
+    } else if (playerY >= height) {
+        playerY = height - 20;
+    }
+
+}
+
+
+function draw() {
+    background(255);
+    
     /** Main Code */
     drawGrid();
     drawPlayer();
+    checkBorderCollision();
   
     /** Debugging */
     // printMousePosition();
