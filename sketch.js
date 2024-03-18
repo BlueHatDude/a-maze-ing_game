@@ -3,95 +3,87 @@ let playerY = 25;
 /* possible values: >, v, <, ^ */ 
 let playerChar = '>';
 const movementSpeed = 5;
-let grid = [];
+let grid = [
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+];
 const GRID_ROWS = 10;
 const GRID_COLUMNS = 10;
 let interval;
+const directions_enum = {
+    north:     1,
+    east:      2,
+    south:     3,
+    west:      4,
+};
+
+const directions = [
+    directions_enum.north,     /* (x, y) -> (x, y - 1)     */
+    directions_enum.east,      /* (x, y) -> (x + 1, y)     */
+    directions_enum.south,     /* (x, y) -> (x, y + 1)     */
+    directions_enum.west,      /* (x, y) -> (x - 1, y)     */
+];
 
 
-function boundByMax(num, max) {
-    return (num > max) ? max : num ;
-}
+function constrainNum(num, min, max) {
 
-
-function boundByMin(num, min) {
-    return (num < min) ? min : num ; 
-}
-
-
-function generateMazePath() {
-
-    const DIRECTIONS = ["NORTH",     /* (x, y) -> (x, y - 1)     */
-                        "NORTHEAST", /* (x, y) -> (x + 1, y - 1) */
-                        "EAST",      /* (x, y) -> (x + 1, y)     */
-                        "SOUTHEAST", /* (x, y) -> (x + 1, y + 1) */
-                        "SOUTH",     /* (x, y) -> (x, y + 1)     */
-                        "SOUTHWEST", /* (x, y) -> (x - 1, y + 1) */
-                        "WEST",      /* (x, y) -> (x - 1, y)     */
-                        "NORTHWEST"  /* (x, y) -> (x - 1, y - 1)  */
-    ];
-
-    /** Maze Generating Algorithm (not good) */
-    /*
-        1. Start from a random point on the left side of the maze
-        2. Generate a valid path starting from the left side of the
-            maze until the other side is reached
-    */
-
-    let mazePosX = 0;
-    let mazePosY = 0;
-    console.log(`Maze Positions: (${mazePosX}, ${mazePosY})`);
-
-    mazePosY = random(10);
-
-    while (mazePosX != (GRID_COLUMNS - 1)) {
-        let direction = random(DIRECTIONS);
-
-        if (direction == "NORTH") {
-            mazePosY = boundByMin(mazePosY - 1, 0);
-        } else if (direction == "NORTHEAST") {
-            mazePosY = boundByMin(mazePosY - 1, 0);
-            mazePosX = boundByMax(mazePosX + 1, GRID_COLUMNS);
-        } else if (direction == "EAST") {
-            mazePosX = boundByMax(mazePosX + 1, GRID_COLUMNS);
-        } else if (direction == "SOUTHEAST") {
-            mazePosX = boundByMax(mazePosX + 1, GRID_COLUMNS);
-            mazePosY = boundByMax(mazePosY + 1, GRID_ROWS);
-        } else if (direction == "SOUTH") {
-            mazePosY = boundByMax(mazePosY + 1, GRID_COLUMNS);
-        } else if (direction == "SOUTHWEST") {
-            mazePosY = boundByMax(mazePosY + 1, GRID_ROWS);
-            mazePosX = boundByMin(mazePosX - 1, 0);
-        } else if (direction == "WEST") {
-            mazePosX = boundByMin(mazePosX - 1, 0);
-        } else if (direction == "NORTHWEST") {
-            mazePosX = boundByMin(mazePosX - 1, 0);
-            mazePosY = boundByMin(mazePosY - 1, 0);
-        }
-    
-        grid[mazePosX][mazePosY] = 1;
+    if (num < min) {
+        return min;
+    } else if (num > max) {
+        return max;
+    } else {
+        return num;
     }
 
-    // playerY = mazePosY * (interval - 10);
-    // console.log(`playerY position set to ${playerX}`);
 }
 
+/**
+ * @brief checks if current position is bordering existing path
+ */
+function isAdjacent(posX, posY, direction) {
 
-function initializeGrid() {
-    grid = [
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    ];
-    
+}
 
+/* ===== Maze Generation Algorithm =====
+
+    1. Choose starting point on left border. Choose ending point on right border.  
+    2. Using starting point as origin, choose a random direction to move in. If the space chosen does not
+       border existing path, create new path tile.
+    3. Repeat Step 2 until the end tile is reached.
+*/
+function generateMazePath() {
+    const startingPoint = [ random(GRID_ROWS), 0 ];
+    const endingPoint = [ random(GRID_ROWS),  GRID_COLUMNS - 1];
+    let mazePosX = startingPoint[1];
+    let mazePosY = startingPoint[0];
+
+    while ( (mazePosX !== endingPoint[1]) && (mazePosY !== endingPoint[0]) ) {
+        let chosenDirection = random(directions);
+
+        switch (chosenDirection) {
+            case directions_enum.north:
+                mazePosY = constrainNum(mazePosY - 1, 0, GRID_ROWS);
+                break;
+            case directions_enum.east:
+                mazePosX = constrainNum(mazePosX + 1, 0, GRID_COLUMNS);
+                break;
+            case directions_enum.south:
+                mazePosY = constrainNum(mazePosY + 1, 0, GRID_ROWS);
+                break;
+            case directions_enum.west:
+                mazePosX = constrainNum(mazePosX - 1, 0, GRID_COLUMNS);
+                break;
+        }
+        
+    }
 }
 
 
@@ -99,9 +91,8 @@ function setup() {
     createCanvas(500, 500);
     textSize(20);
 
-    initializeGrid();
-    generateMazePath();
     interval = ((width + height) / 2) / 10;
+    generateMazePath();
 }
 
 
