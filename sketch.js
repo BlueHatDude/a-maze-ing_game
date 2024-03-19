@@ -82,6 +82,9 @@ function generateMazePath() {
     const endPosX = (GRID_COLUMNS - 1);
     const endPosY = floor(random(GRID_ROWS - 1));
 
+    console.debug(`Start Position: (${mazePosX}, ${mazePosY})`);
+    console.debug(`Ending Position: (${endPosX}, ${endPosY})`);
+
     /* coloring start and end positions */
     grid[mazePosY][mazePosX] = 1;
     grid[endPosY][endPosX] = 1;
@@ -90,9 +93,39 @@ function generateMazePath() {
     playerX = 25;
     playerY = (mazePosY * interval) + 25;
 
-    /* debugging */
-    // console.debug(`Starting Point: (${mazePosX}, ${mazePosY})`);
-    // console.debug(`Ending Point: (${endPosX}, ${endPosY})`);
+    /* travelling along the grid until the end point is reached */
+    while ( (mazePosX !== endPosX) && (mazePosY != endPosY) ) {
+        let chosenDirection = random(directions);
+
+        switch (chosenDirection) {
+            case directions_enum.north:
+                if ( !isAdjacent(mazePosX, constrain(mazePosY - 1, 0, GRID_ROWS - 1), chosenDirection) ) {
+                    mazePosY = constrain(mazePosY - 1 , 0, GRID_ROWS - 1);
+                }
+                break;
+            case directions_enum.east:
+                if ( !isAdjacent( constrain(mazePosX + 1, 0, GRID_COLUMNS - 1), mazePosY, chosenDirection) ) {
+                    mazePosX = constrain(mazePosX + 1, 0, GRID_COLUMNS - 1);
+                }
+                break;
+            case directions_enum.south:
+                if ( !isAdjacent(mazePosX, constrain(mazePosY + 1, 0, GRID_ROWS - 1), chosenDirection) ) {
+                    mazePosY = constrain(mazePosY + 1 , 0, GRID_ROWS - 1);
+                }
+                break;
+            case directions_enum.west:
+                if ( !isAdjacent( constrain(mazePosX - 1, 0, GRID_COLUMNS - 1), mazePosY, chosenDirection) ) {
+                    mazePosX = constrain(mazePosX - 1, 0, GRID_COLUMNS - 1);
+                }
+                break;
+            default:
+                console.debug("invalid direction");
+        }
+
+        grid[mazePosY][mazePosX] = 1;
+
+        console.debug(`Current Maze Position (${mazePosX}, ${mazePosY})`);
+    }
 
 }
 
