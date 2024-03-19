@@ -8,7 +8,7 @@ const gridColors_enum = {
     white: 1,
     green: 2,
     red:   3,
-}
+};
 let grid = [
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -39,6 +39,10 @@ const directions = [
     directions_enum.south,     /* (x, y) -> (x, y + 1)     */
     directions_enum.west,      /* (x, y) -> (x - 1, y)     */
 ];
+
+function preload() {
+    
+}
 
 /**
  * @brief checks if current position is bordering existing path
@@ -88,7 +92,7 @@ function isAdjacent(posX, posY, direction) {
             break;
     }
 
-    // // console.debug(`front: ${front} | leftBottom: ${leftBottom} | rightTop: ${rightTop} | direction: ${direction}`);
+    // console.debug(`front: ${front} | leftBottom: ${leftBottom} | rightTop: ${rightTop} | direction: ${direction}`);
     return (front || leftBottom || rightTop);
 }
 
@@ -150,7 +154,7 @@ function generateMazePath() {
     grid[ startingPoint[1] ][ startingPoint[0] ] = gridColors_enum.green;
     grid[endPosY][endPosX] = gridColors_enum.red;
 
-    // // console.debug(grid);
+    // console.debug(grid);
 }
 
 function setup() {
@@ -159,7 +163,6 @@ function setup() {
 
     interval = ((width + height) / 2) / 10;
     generateMazePath();
-
 }
 
 function drawMazePath() {
@@ -188,19 +191,32 @@ function drawMazePath() {
 }
 
 function checkMazeCollision() {
+    let currentPosX = ceil(playerX / 50) - 1;
+    let currentPosY = ceil(playerY / 50) - 1;
     
+    // console.debug(`checking if won... (${playerX}, ${playerY}) -> (${currentPosX}, ${currentPosY})`);
+
+    if ( grid[currentPosY][currentPosX] === grid[endPosY][endPosX] ) {
+        fill(255);
+        rect(100, 200, 300, 100);
+        fill(100);
+        text("YOU LOSE!!", 150, 250);
+    }
 }
 
 function checkIfWon() {
     let currentPosX = ceil(playerX / 50) - 1;
     let currentPosY = ceil(playerY / 50) - 1;
     
-    // // console.debug(`checking if won... (${playerX}, ${playerY}) -> (${currentPosX}, ${currentPosY})`);
+    // console.debug(`checking if won... (${playerX}, ${playerY}) -> (${currentPosX}, ${currentPosY})`);
 
     if ( grid[currentPosY][currentPosX] === grid[endPosY][endPosX] ) {
-        alert("You have beaten the maze!! Reload to continue");
+        fill(255);
+        rect(100, 200, 300, 100);
+        fill(100);
+        text("YOU WIN!!", 150, 250);
     } else {
-        // // console.debug("You haven't won yet.");
+        // console.debug("You haven't won yet.");
     }
 }
 
