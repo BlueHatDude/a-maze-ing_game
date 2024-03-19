@@ -3,6 +3,12 @@ let playerY = 25;
 /* possible values: >, v, <, ^ */ 
 let playerChar = '>';
 const movementSpeed = 5;
+const gridColors_enum = {
+    black: 0,
+    white: 1,
+    green: 2,
+    red:   3,
+}
 let grid = [
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -17,6 +23,8 @@ let grid = [
 ];
 const GRID_ROWS = 10;
 const GRID_COLUMNS = 10;
+const endPosX = (GRID_COLUMNS - 1);
+const endPosY = Math.floor(Math.random() * (GRID_ROWS - 1));
 let interval;
 const directions_enum = {
     north:     1,
@@ -36,35 +44,52 @@ const directions = [
  * @brief checks if current position is bordering existing path
  */
 function isAdjacent(posX, posY, direction) {
+    /*
+           0  1  2  3  4  5  6  7  8  9
+        0 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        1 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        2 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        3 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        4 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        5 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        6 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        7 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        8 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        9 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    */
 
-    if (direction in [directions_enum.north, directions_enum.south]) {
-        const left = grid[posY][ constrain(posX - 1, 0, GRID_COLUMNS - 1) ];
-        const right = grid[posY][ constrain(posX + 1, 0, GRID_COLUMNS - 1) ];
-        let front;
-        if (direction === directions_enum.north) {
+    /* the tile directly in front of the current tile */
+    let front;
+    /* the tile directly to the left/bottom of the current tile */
+    let leftBottom;
+    /* the tile directly to the right/top of the current tile */
+    let rightTop;
+
+    switch (direction) {
+        case directions_enum.north:
             front = grid[ constrain(posY - 1, 0, GRID_ROWS - 1) ][posX];
-        } else if (direction === directions_enum.south) {
+            leftBottom = grid[posY][ constrain(posX - 1, 0, GRID_COLUMNS - 1) ];
+            rightTop = grid[posY][ constrain(posX + 1, 0, GRID_COLUMNS - 1) ];
+            break;
+        case directions_enum.east:
+            front = grid[posY][ constrain(posX + 1, 0, GRID_COLUMNS - 1) ];
+            leftBottom = grid[ constrain(posY + 1, 0, GRID_ROWS - 1) ][posX];
+            rightTop = grid[ constrain(posY - 1, 0, GRID_ROWS - 1) ][posX];
+            break;
+        case directions_enum.south:
             front = grid[ constrain(posY + 1, 0, GRID_ROWS - 1) ][posX];
-        }
-
-        /* will be 1 if grid space occupied, 0 if not */
-        if ( left || right || front ) {
-            return true;
-        }
-
-    } else if (direction in [directions_enum.east, directions_enum.west]) {
-        const above = grid[ constrain(posY - 1, 0, GRID_ROWS - 1) ][posX];
-        const below = grid[ constrain(posY + 1, 0, GRID_ROWS - 1) ][posX];
-        let front;
-
-        if (direction === directions_enum.east) {
-            front =  grid[posY][ constrain(posX + 1, 0, GRID_COLUMNS - 1) ];
-        } else if (direction === directions_enum.west) {
-            front = grid[posY][ constrain(posX - 1), 0, GRID_COLUMNS - 1];
-        }
-
+            leftBottom = grid[posY][ constrain(posX - 1, 0, GRID_COLUMNS - 1) ];
+            rightTop = grid[posY][ constrain(posX + 1, 0, GRID_COLUMNS - 1) ];
+            break;
+        case directions_enum.west:
+            front = grid[posY][ constrain(posX + 1, 0, GRID_COLUMNS - 1) ];
+            leftBottom = grid[ constrain(posY + 1, 0, GRID_ROWS - 1) ][posX];
+            rightTop = grid[ constrain(posY - 1, 0, GRID_ROWS - 1) ][posX];
+            break;
     }
 
+    // // console.debug(`front: ${front} | leftBottom: ${leftBottom} | rightTop: ${rightTop} | direction: ${direction}`);
+    return (front || leftBottom || rightTop);
 }
 
 /*
@@ -79,22 +104,17 @@ function generateMazePath() {
     /* setting start and end points */
     let mazePosX = 0;
     let mazePosY = floor(random(GRID_ROWS));
-    const endPosX = (GRID_COLUMNS - 1);
-    const endPosY = floor(random(GRID_ROWS - 1));
+    const startingPoint = [mazePosX, mazePosY];
 
-    console.debug(`Start Position: (${mazePosX}, ${mazePosY})`);
-    console.debug(`Ending Position: (${endPosX}, ${endPosY})`);
-
-    /* coloring start and end positions */
-    grid[mazePosY][mazePosX] = 1;
-    grid[endPosY][endPosX] = 1;
+    // console.debug(`Start Position: (${mazePosX}, ${mazePosY})`);
+    // console.debug(`Ending Position: (${endPosX}, ${endPosY})`);
 
     /* setting player to proper position */
     playerX = 25;
     playerY = (mazePosY * interval) + 25;
 
     /* travelling along the grid until the end point is reached */
-    while ( (mazePosX !== endPosX) && (mazePosY != endPosY) ) {
+    while ( (mazePosX !== endPosX) || (mazePosY !== endPosY) ) {
         let chosenDirection = random(directions);
 
         switch (chosenDirection) {
@@ -119,16 +139,19 @@ function generateMazePath() {
                 }
                 break;
             default:
-                console.debug("invalid direction");
+                // console.debug("invalid direction");
         }
 
-        grid[mazePosY][mazePosX] = 1;
+        grid[mazePosY][mazePosX] = gridColors_enum.white;
 
-        console.debug(`Current Maze Position (${mazePosX}, ${mazePosY})`);
+        // console.debug(`Current Maze Position (${mazePosX}, ${mazePosY})`);
     }
 
-}
+    grid[ startingPoint[1] ][ startingPoint[0] ] = gridColors_enum.green;
+    grid[endPosY][endPosX] = gridColors_enum.red;
 
+    // // console.debug(grid);
+}
 
 function setup() {
     createCanvas(500, 500);
@@ -136,27 +159,50 @@ function setup() {
 
     interval = ((width + height) / 2) / 10;
     generateMazePath();
+
 }
 
-
 function drawMazePath() {
-    fill(255);
-
     for (let i = 0; i < GRID_ROWS; ++i) {
         for (let j = 0; j < GRID_COLUMNS; ++j) {
-            if (grid[j][i] == 1) {
-                rect(i * interval, j * interval, interval, interval);
+            
+            switch (grid[j][i]) {
+                case gridColors_enum.white:
+                    fill(255);
+                    break;
+                case gridColors_enum.green:
+                    fill(0, 255, 0);
+                    break;
+                case gridColors_enum.red:
+                    fill(255, 0, 0);
+                    break;
+                default:
+                    fill(0);
+                    break;
             }
+            
+            rect(i * interval, j * interval, interval, interval);
         }
     }
 
 }
 
-
 function checkMazeCollision() {
-
+    
 }
 
+function checkIfWon() {
+    let currentPosX = ceil(playerX / 50) - 1;
+    let currentPosY = ceil(playerY / 50) - 1;
+    
+    // // console.debug(`checking if won... (${playerX}, ${playerY}) -> (${currentPosX}, ${currentPosY})`);
+
+    if ( grid[currentPosY][currentPosX] === grid[endPosY][endPosX] ) {
+        alert("You have beaten the maze!! Reload to continue");
+    } else {
+        // // console.debug("You haven't won yet.");
+    }
+}
 
 function drawGrid() {
     stroke(150);
@@ -188,7 +234,6 @@ function drawPlayer() {
     text(playerChar, playerX, playerY);
 }
 
-
 function checkBorderCollision() {
     
     if (playerX <= 0) {
@@ -205,6 +250,24 @@ function checkBorderCollision() {
 
 }
 
+function runTests() {
+    grid = [
+    /*   0  1  2  3  4  5  6  7  8  9  */
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], /* 0 */
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], /* 1 */
+        [2, 0, 0, 0, 0, 0, 0, 0, 0, 0], /* 2 */ 
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], /* 3 */
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], /* 4 */
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 3], /* 5 */
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], /* 6 */
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], /* 7 */
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], /* 8 */
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], /* 9 */
+    ];
+
+    let result = isAdjacent(1, 2, directions_enum.east);
+    // console.debug(`test result: ${result}`);
+}
 
 function draw() {
     /** Initialization */
@@ -215,11 +278,11 @@ function draw() {
     drawPlayer();
     drawGrid();
     checkBorderCollision();
+    checkIfWon();
   
     /** Debugging */
     // printMousePosition();
 }
-
 
 function printMousePosition() {
     fill(0);
